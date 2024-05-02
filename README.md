@@ -56,4 +56,6 @@ Network Testing Tool allows easy configuration of various parameters to tailor t
 
 For any inquiries or feedback, please contact us at perfgrine@gmail.com.
 
+<img src="images/screen1.jpg" alt="Alt text" width="200">
+
 </div>
