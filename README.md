@@ -52,9 +52,7 @@ Network Testing Tool allows easy configuration of various parameters to tailor t
 • Number of parallel streams <br>
 
 
-### Contact
-
-For any inquiries or feedback, please contact us at perfgrine@gmail.com.
+### Screenshots
 
 <img src="images/screen1.jpg" alt="Alt text" width="200"> 
 <img src="images/screen2.jpg" alt="Alt text" width="200"> 
@@ -64,4 +62,9 @@ For any inquiries or feedback, please contact us at perfgrine@gmail.com.
 <img src="images/screen6.jpg" alt="Alt text" width="200">
 <img src="images/screen7.jpg" alt="Alt text" width="200">
 <img src="images/screen8.jpg" alt="Alt text" width="200">
+
+
+### Contact
+
+For any inquiries or feedback, please contact us at perfgrine@gmail.com.
 </div>
