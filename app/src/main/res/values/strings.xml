@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">Perfgrine</string>
+    <string name="unit1">Mbps</string>
+    <string name="unit2">MBytes</string>
+
+    <style name="ItemText">
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <string-array name="bandwidth">
+        <item>100M</item>
+        <item>200M</item>
+        <item>300M</item>
+        <item>400M</item>
+        <item>500M</item>
+        <item>600M</item>
+        <item>700M</item>
+        <item>800M</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="port">
+        <item>100M</item>
+        <item>200M</item>
+        <item>300M</item>
+        <item>400M</item>
+        <item>500M</item>
+        <item>600M</item>
+        <item>700M</item>
+        <item>800M</item>
+    </string-array>
+
+    <string-array name="streams">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+    </string-array>
+
+</resources>
