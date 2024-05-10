@@ -12,8 +12,8 @@ android {
         applicationId = "com.perfgrine.iperftesting"
         minSdk = 22
         targetSdk = 34
-        versionCode = 6
-        versionName = "2.4"
+        versionCode = 7
+        versionName = "2.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -43,11 +43,11 @@ android {
     }
 
 
-        packaging {
-            jniLibs {
-                useLegacyPackaging = true
-            }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
         }
+    }
 }
 
 dependencies {

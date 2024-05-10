@@ -22,7 +22,7 @@ class FinalOutput : AppCompatActivity() {
 
         val receivedArrayList = intent.getIntegerArrayListExtra("bitrate list")
 
-        if (receivedArrayList != null) {
+        if (!receivedArrayList.isNullOrEmpty()) {
             binding.minBitrate.append( receivedArrayList.minOrNull().toString() + " Mbps")
             binding.maxBitrate.append(receivedArrayList.maxOrNull().toString() + " Mbps")
             val averageBitrate = receivedArrayList[receivedArrayList.size-1]

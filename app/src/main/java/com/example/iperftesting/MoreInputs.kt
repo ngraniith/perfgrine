@@ -21,7 +21,6 @@ class MoreInputs : BottomSheetDialogFragment() {
 
     private lateinit var binding: FragmentMoreInputsBinding
 
-
     private var radioButtonSelectedIndex: Int = -1
     private var reverseRadioButtonIndex: Int = -1
     private var spinnerSelectedItemPosition: Int = 0
@@ -106,6 +105,12 @@ class MoreInputs : BottomSheetDialogFragment() {
         binding.reverseHelp.setOnClickListener {
             showHelpDialog("Reverse")
         }
+        if(binding.reverseMode.isChecked){
+            binding.reverseMode.setOnClickListener {
+                binding.reverseGroup.clearCheck()
+            }
+        }
+
     }
 
     private fun showHelpDialog(parameter: String) {
@@ -244,9 +249,11 @@ class MoreInputs : BottomSheetDialogFragment() {
         spinnerSelectedItemPosition = binding.bandSpinner.selectedItemPosition
 
         editor.putInt("selectedBandwidth",spinnerSelectedItemPosition)
+        Log.d("selectedItemPosition", spinnerSelectedItemPosition.toString())
 
         val bandItem = binding.bandSpinner.getItemAtPosition(spinnerSelectedItemPosition).toString()
         editor.putString("bandItem",bandItem)
+        Log.d("bandwidthItems",bandwidthItems.toString())
 
         Log.d("changed bandwidth",bandItem)
 
@@ -288,11 +295,25 @@ class MoreInputs : BottomSheetDialogFragment() {
         Log.d("reverse mode",sharedPreferences.getString("mode","").toString())
 
         spinnerSelectedItemPosition = sharedPreferences.getInt("selectedBandwidth",0)
-
-        Log.d("bandwidthSize",bandwidthItems.size.toString())
+        Log.d("bandwidthItems",bandwidthItems.toString())
+        Log.d("spinnerSelectedItemPos",spinnerSelectedItemPosition.toString())
+        Log.d("bandwidthSizeR",bandwidthItems.size.toString())
         if(spinnerSelectedItemPosition < bandwidthItems.size){
             binding.bandSpinner.setSelection(spinnerSelectedItemPosition)
+        }else {
+            // If the selected position exceeds the size of bandwidthItems, add the custom bandwidth
+            val bandItem = sharedPreferences.getString("bandItem","")
+            if (!bandwidthItems.contains(bandItem)) {
+                if (bandItem != null) {
+                    bandwidthItems.add(bandItem)
+                }
+                bandwidthAdapter.notifyDataSetChanged()
+            }
+            // Update spinner selection
+            binding.bandSpinner.setSelection(bandwidthItems.indexOf(bandItem))
         }
+//        val bandItem = sharedPreferences.getString("bandItem","")
+//        binding.bandSpinner.
 
         streamSelectedItemPosition = sharedPreferences.getInt("selectedStreams",0)
         binding.parallelStreams.setSelection(streamSelectedItemPosition)

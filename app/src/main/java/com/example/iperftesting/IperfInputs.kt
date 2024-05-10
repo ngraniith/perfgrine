@@ -48,6 +48,7 @@ class IperfInputs : AppCompatActivity() {
                     //Toast.makeText(this,"Valid Ipaddress",Toast.LENGTH_SHORT).show()
                     iperfIntent.putExtra("ipaddress",ipAddress.text.toString())
                     startActivity(iperfIntent)
+                    finish()
 
                 }
                 else{
@@ -56,6 +57,7 @@ class IperfInputs : AppCompatActivity() {
             }else{
                 iperfIntent.putExtra("systemChosen","-s")
                 startActivity(iperfIntent)
+                finish()
 
 
             }

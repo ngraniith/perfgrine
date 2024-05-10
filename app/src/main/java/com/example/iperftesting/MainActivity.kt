@@ -1,10 +1,13 @@
 package com.example.iperftesting
 
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -28,10 +31,12 @@ import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.io.InputStreamReader
+import java.io.Serializable
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
 
 
     private lateinit var resultTextView: TextView
@@ -42,12 +47,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var backButton: Button
     private lateinit var summaryButton: Button
     private lateinit var scrollOutput: ScrollView
+    private val FOREGROUND_PERMISSION_REQUEST = 124
+
+
     private var isRunning = false
     private var elapsedTimeSeconds: Int = 0
     private val timerHandler = Handler(Looper.getMainLooper())
     private var isTimerRunning = false
     private var bitrate = 0
     private var errorFound = false
+    private var onBackPressed = false
     private lateinit var allBitrate : ArrayList<Int>
 
     private var time: Int = 0
@@ -73,12 +82,17 @@ class MainActivity : AppCompatActivity() {
         scrollOutput = findViewById(R.id.outputScroll)
         allBitrate = ArrayList()
 
-        resultTextView.text = ""
-        output.text = ""
+        IperfServiceManager.actionListener = this
+        IperfServiceManager.callback = this
+
         checkAndRequestInternetPermission()
 
+
+        resultTextView.text = ""
+        output.text = ""
+
         summaryButton.setOnClickListener {
-            displayFinalOutput()
+            onDisplayingFinalOutput()
         }
     }
 
@@ -103,7 +117,7 @@ class MainActivity : AppCompatActivity() {
 
         resultTextView.text = ""
         output.text= ""
-        performIperf(path)
+        performIperf()
     }
     private fun formatDuration(seconds: Int): String {
         val hours = seconds / 3600
@@ -112,13 +126,15 @@ class MainActivity : AppCompatActivity() {
         return String.format("%02d:%02d:%02d", hours, minutes, remainingSeconds)
     }
 
-    private fun performIperf(path: String): Boolean{
+    private fun performIperf(): Boolean{
         Log.d("Perform iperf method","Entered the method")
         //"iperf3","-c",ipAddress,"-u","-t","12","-b","800M","R"
-        val command = getCommands()
+        val command = onGetCommand()
         Log.d("Command",command)
         Toast.makeText(applicationContext,command,Toast.LENGTH_SHORT).show()
-        val response = StringBuilder()
+        isTimerRunning = false
+
+
         if(command == "-s"){
             duration.text = "Total:${formatDuration(0)}"
         }else{
@@ -132,113 +148,53 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val processBuilder = ProcessBuilder(path,*command.split("\\s+".toRegex()).toTypedArray(),"--forceflush","-f","m") // command = "-s"
-                val process = processBuilder.start()
-                Log.d("hey","started process")
-                isRunning = true
-                allBitrate.clear()
-                val inputStream = process.inputStream
-                val reader = BufferedReader(InputStreamReader(inputStream))
-                val errorReader = BufferedReader(InputStreamReader(process.errorStream))
-
-                withContext(Dispatchers.Main){
-
-                    backButton.setOnClickListener {
-                        process.destroy()
-                        inputStream.close()
-                        reader.close()
-                        isTimerRunning = true
-                        Log.d("Ended","Process Terminated")
-                        Toast.makeText(applicationContext,"Stopped Testing",Toast.LENGTH_SHORT).show()
-                        finish()
-                    }
-                }
-
-                var line: String?
-                while (reader.readLine().also { line = it } != null) {
-
-                    if(command != "-s"){
-                        durationOfTest()
-                    }else{
-                        durationForServer()
-                    }
-
-                    response.append(line).append("\n")
-                    Log.d("Output",line.toString())
-
-                    withContext(Dispatchers.Main){
-                        output.append(line.toString()+"\n")
-                        stopAndRestart(process)
-                        scrollOutput.post {
-                            scrollOutput.fullScroll(View.FOCUS_DOWN)
-                        }
-                        displayingOutput(line)
-                        getTransferredData(line)
-                        getLostNoOfPackets(line)
-                    }
-                }
-
-                val errorResponse = StringBuilder()
-                while (errorReader.readLine().also { line = it } != null) {
-                    errorResponse.append(line).append("\n")
-
-                    Log.d("error Output",line.toString())
-                    withContext(Dispatchers.Main){
-                        output.append("$line \n")
-                        scrollOutput.post {
-                            scrollOutput.fullScroll(View.FOCUS_DOWN)
-                        }
-                    }
-                }
-
-                if (errorResponse.isNotEmpty()) {
-
-                    Log.d("errorOutput",errorResponse.toString())
-                    errorFound = true
-
-               }
-                process.waitFor()
-                withContext(Dispatchers.Main){
-                    stopButton.text = "Restart"
-                }
-
-
-                if(errorFound){
-                    Log.d("error","so can't display final output")
-                    withContext(Dispatchers.Main){
-                        if(!response.contains("server has terminated")){
-                            summaryButton.isEnabled = false
-                        }
-                        stopAndRestart(process)
-                    }
-
-                }else{
-                    withContext(Dispatchers.Main){
-                        summaryButton.isEnabled = true
-                        displayFinalOutput()
-                    }
-
-
-                }
-
-                Log.d("Process","Completed")
-            } catch (e: IOException) {
-                e.printStackTrace()
-                "Error: " + e.message
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
-                "Error: " + e.message
-            }
-
-        }
+        startIperfService(false)
         return true
+    }
+
+    private fun startIperfService(serviceRunning: Boolean) {
+
+        isRunning = true
+        allBitrate.clear()
+        val serviceIntent = Intent(this, IperfService::class.java)
+        val command = onGetCommand()
+        serviceIntent.putExtra("command",command)
+        serviceIntent.putExtra("path",applicationInfo.nativeLibraryDir + "/libiperf3.16.so")
+        if(!serviceRunning){
+            Toast.makeText(applicationContext,"Started Service",Toast.LENGTH_SHORT).show()
+            startService(serviceIntent)
+        }else{
+            Toast.makeText(applicationContext,"Stopped Service",Toast.LENGTH_SHORT).show()
+            stopService(serviceIntent)
+        }
 
     }
 
-    private fun durationForServer() {
+    override fun toStopService(value: Boolean) {
+        startIperfService(value)
+    }
 
+    override fun stopToRestart() {
+        stopButton.text = "Restart"
+    }
+
+    override fun onResultReceived(line: String?) {
+
+        Log.d("Output",line.toString())
+        output.append(line.toString()+"\n")
+        scrollOutput.post {
+            scrollOutput.fullScroll(View.FOCUS_DOWN)
+        }
+        displayingOutput(line)
+        getTransferredData(line)
+        getLostNoOfPackets(line)
+    }
+
+    override fun onSummaryButtonEnabled(value: Boolean) {
+        summaryButton.isEnabled = value
+    }
+
+    override fun durationOfServer() {
         if(!isTimerRunning){
             timerHandler.post(object : Runnable {
                 override fun run() {
@@ -247,11 +203,11 @@ class MainActivity : AppCompatActivity() {
                     elapsedTimeSeconds += 1
                     // Check if iperf test is finished (example condition)
 
-                    if(isRunning && !errorFound) {
+                    if(isRunning && !errorFound && !onBackPressed) {
                         // Continue updating elapsed time
                         timerHandler.postDelayed(this, 1000) // Update every second
                     }else{
-                        isTimerRunning = false
+                        isTimerRunning = true
                     }
                 }
             })
@@ -259,9 +215,77 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun displayFinalOutput() {
+    override fun onStopRestartClicked(process: Process?) {
+        stopButton.setOnClickListener {
+            if(isRunning && stopButton.text == "Stop"){
+                    process?.destroy()
+                    stopButton.text = "Restart"
+                    elapsedTimeSeconds = 0
+                    timerHandler.removeCallbacksAndMessages(null)
+                    toStopService(true)
+                    isRunning = false
+                    summaryButton.isEnabled = false
+                    isTimerRunning = false
+
+                    Toast.makeText(applicationContext,"Stopped Testing",Toast.LENGTH_SHORT).show()
+                }
+            else{
+                if(stopButton.text == "Restart"){
+                    stopButton.text = "Stop"
+                    output.text = ""
+                    elapsedTimeSeconds = 0
+                    summaryButton.isEnabled = false
+                    performIperf()
+                    Toast.makeText(applicationContext,"Restarted Testing",Toast.LENGTH_SHORT).show()
+                }
+
+            }
+        }
+    }
+
+    override fun onBackButtonClicked(process: Process,inputStream: InputStream,reader: BufferedReader) {
+        backButton.setOnClickListener {
+            onBackPressed = true
+            process.destroy()
+            inputStream.close()
+            reader.close()
+            isTimerRunning = true
+            toStopService(true)
+            Log.d("Ended","Process Terminated")
+            Toast.makeText(applicationContext,"Stopped Testing",Toast.LENGTH_SHORT).show()
+            startActivity(Intent(applicationContext, IperfInputs::class.java))
+            finish()
+        }
+    }
+
+    override fun durationOfClient() {
+        if(!isTimerRunning){
+            timerHandler.post(object : Runnable {
+                override fun run() {
+                    // Update elapsed time text view
+                    current.text = formatDuration(elapsedTimeSeconds)
+                    elapsedTimeSeconds += 1
+                    // Check if iperf test is finished (example condition)
+                    val isIperfTestFinished = elapsedTimeSeconds <= time
+                    Log.d("total time",time.toString())
+                    Log.d("elapsedTime",elapsedTimeSeconds.toString())
+
+                    if (isIperfTestFinished && !errorFound && !onBackPressed) {
+                        // Continue updating elapsed time
+                        timerHandler.postDelayed(this, 1000) // Update every second
+                    }else{
+                        isTimerRunning = true
+                    }
+                }
+            })
+            isTimerRunning = true
+        }
+    }
+
+    override fun onDisplayingFinalOutput() {
 
         val finalIntent = Intent(applicationContext,FinalOutput::class.java)
+
         finalIntent.putIntegerArrayListExtra("bitrate list",allBitrate)
         finalIntent.putExtra("transferred data",transferredData)
         finalIntent.putExtra("Units of Data",transferredUnits)
@@ -270,8 +294,8 @@ class MainActivity : AppCompatActivity() {
         finalIntent.putExtra("totalPackets",totalPackets)
         startActivity(finalIntent)
     }
-    private fun getLostNoOfPackets(line: String?){
 
+    override fun getLostNoOfPackets(line: String?) {
         if(line.toString().contains("receiver")){
             Log.d("packets","Entered packets method")
             val packetsRegex = Regex("""(\d+)/(\d+)""")
@@ -286,8 +310,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getTransferredData(line: String?) {
-
+    override fun getTransferredData(line: String?) {
         if(line.toString().contains("sender")){
             Log.d("sender","entered sender loop")
             val transferRegex = Regex("""\d+(\.\d+)? [GKM]Bytes""")
@@ -301,31 +324,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun stopAndRestart(process: Process?){
-        stopButton.setOnClickListener {
-            if(isRunning){
-                process?.destroy()
-                stopButton.text = "Restart"
-                elapsedTimeSeconds = 0
-                timerHandler.removeCallbacksAndMessages(null)
-                isRunning = false
-                summaryButton.isEnabled = false
-                isTimerRunning = false
-
-                Toast.makeText(applicationContext,"Stopped Testing",Toast.LENGTH_SHORT).show()
-            }else{
-                val path1 =  applicationInfo.nativeLibraryDir + "/libiperf3.16.so"
-                stopButton.text = "Stop"
-                output.text = ""
-                elapsedTimeSeconds = 0
-                summaryButton.isEnabled = false
-                performIperf(path1)
-                Toast.makeText(applicationContext,"Restarted Testing",Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-    private fun displayingOutput(line: String?){
-
+    override fun displayingOutput(line: String?) {
         if(streams.toString().isNotBlank() && streams.toString().isNotEmpty() && streams?.toInt()!! > 1){
             if(line.toString().contains("[SUM]")){
                 Log.d("Sum","entered sum loop")
@@ -343,6 +342,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
     private fun displayBitRate(line: String?): Int{
 
         if (line.toString().contains("bits/sec")) {
@@ -358,31 +358,7 @@ class MainActivity : AppCompatActivity() {
         }
         return bitrate
     }
-    private fun durationOfTest(){
 
-        if(!isTimerRunning){
-            timerHandler.post(object : Runnable {
-                override fun run() {
-                    // Update elapsed time text view
-                    current.text = formatDuration(elapsedTimeSeconds)
-                    elapsedTimeSeconds += 1
-                    // Check if iperf test is finished (example condition)
-                    val isIperfTestFinished = elapsedTimeSeconds <= time
-                    Log.d("total time",time.toString())
-                    Log.d("elapsedTime",elapsedTimeSeconds.toString())
-
-                    if (isIperfTestFinished && !errorFound) {
-                        // Continue updating elapsed time
-                        timerHandler.postDelayed(this, 1000) // Update every second
-                    }else{
-                        isTimerRunning = false
-                    }
-                }
-            })
-            isTimerRunning = true
-        }
-
-    }
 
     private fun checkAndRequestInternetPermission() {
         if (ContextCompat.checkSelfPermission(
@@ -398,9 +374,21 @@ class MainActivity : AppCompatActivity() {
                 MY_PERMISSIONS_REQUEST_INTERNET
             )
         }
+        else if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.FOREGROUND_SERVICE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Permission is not granted, request it
+            Log.d("Requesting FS","Requesting Foreground service")
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.FOREGROUND_SERVICE),
+                FOREGROUND_PERMISSION_REQUEST
+            )
+        }
         else {
-            // Permission is already granted, execute the ping
-            //Toast.makeText(this,"Permission is already granted",Toast.LENGTH_SHORT).show()
+            // Permission is already granted
             startIperf()
         }
     }
@@ -423,10 +411,24 @@ class MainActivity : AppCompatActivity() {
                 }
                 return
             }
+
+            FOREGROUND_PERMISSION_REQUEST -> {
+                // If request is cancelled, the result arrays are empty.
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    Log.d("Granted FS","Granted Foreground service")
+                    // Permission granted, execute the iperf
+                    startIperf()
+                } else {
+                    // Permission denied, inform the user or take appropriate action
+                    Toast.makeText(this, "FS permission denied", Toast.LENGTH_SHORT).show()
+                    Log.d("Denied FS","Denied Foreground service")
+                }
+                return
+            }
         }
     }
 
-    private fun getCommands(): String{
+    override fun onGetCommand(): String {
 
         var command= ""
         val chosenSystem = intent.getStringExtra("systemChosen")
@@ -478,8 +480,9 @@ class MainActivity : AppCompatActivity() {
                 command += " -R"
             }
         }
-        return command
 
+        Log.d("Command At method",command)
+        return command
     }
 
 }
