@@ -18,4 +18,5 @@ interface IperfActionListener : Serializable{
     fun onSummaryButtonEnabled(value: Boolean)
     fun stopToRestart()
     fun toStopService(value: Boolean)
+    fun stopIperfTest(process: Process,inputStream: InputStream,reader: BufferedReader)
 }

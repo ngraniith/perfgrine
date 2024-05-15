@@ -18,8 +18,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.IOException
+import java.io.InputStream
 import java.io.InputStreamReader
-import java.util.concurrent.TimeUnit
 
 class IperfService : Service() {
 
@@ -31,14 +31,20 @@ class IperfService : Service() {
     var command: String = ""
     private val response = StringBuilder()
     private var errorFound = false
+
+    private var process: Process? = null
+    private var inputStream: InputStream? = null
+    private var reader: BufferedReader? = null
+
+    val actionListener = IperfServiceManager.actionListener
+    val callback = IperfServiceManager.callback
     override fun onBind(intent: Intent): IBinder {
         TODO("Return the communication channel to the service.")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-        val actionListener = IperfServiceManager.actionListener
-        val callback = IperfServiceManager.callback
+
 
         command = intent?.getStringExtra("command").toString()
         val path = intent?.getStringExtra("path")
@@ -70,20 +76,20 @@ class IperfService : Service() {
                     "-f",
                     "m"
                 ) // command = "-s"
-                val process = processBuilder.start()
+                process = processBuilder.start()
                 Log.d("hey", "started process")
-                val inputStream = process.inputStream
-                val reader = BufferedReader(InputStreamReader(inputStream))
-                val errorReader = BufferedReader(InputStreamReader(process.errorStream))
+                inputStream = process?.inputStream
+                reader = BufferedReader(InputStreamReader(inputStream))
+                val errorReader = BufferedReader(InputStreamReader(process?.errorStream))
 
                 withContext(Dispatchers.Main) {
 
-                    actionListener?.onBackButtonClicked(process, inputStream, reader)
+                    actionListener?.onBackButtonClicked(process!!, inputStream!!, reader!!)
                     actionListener?.onStopRestartClicked(process)
                 }
 
                 var line: String?
-                while (reader.readLine().also { line = it } != null) {
+                while (reader?.readLine().also { line = it } != null) {
 
                     withContext(Dispatchers.Main){
                         if (command != "-s") {
@@ -116,7 +122,7 @@ class IperfService : Service() {
                     errorFound = true
 
                 }
-                process.waitFor()
+                process?.waitFor()
 
                 withContext(Dispatchers.Main) {
                     actionListener?.stopToRestart()
@@ -155,7 +161,7 @@ class IperfService : Service() {
         return START_STICKY
     }
 
-    fun createNotificationChannel() {
+    private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "Iperf Service"
             val descriptionText = "Running iperf test"
@@ -169,5 +175,9 @@ class IperfService : Service() {
         }
     }
 
-
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        stopSelf()
+        actionListener?.stopIperfTest(process!!,inputStream!!,reader!!)
+        super.onTaskRemoved(rootIntent)
+    }
 }

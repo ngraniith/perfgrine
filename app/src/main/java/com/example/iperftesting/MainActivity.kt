@@ -1,6 +1,7 @@
 package com.example.iperftesting
 
 import android.Manifest
+import android.app.AlertDialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -20,6 +21,7 @@ import android.widget.ScrollView
 
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -86,6 +88,7 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         IperfServiceManager.callback = this
 
         checkAndRequestInternetPermission()
+        requestNotificationPermission()
 
 
         resultTextView.text = ""
@@ -96,6 +99,50 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         }
     }
 
+    private fun requestNotificationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED) {
+
+            // Register the permissions callback, which handles the user's response to the
+            // system permissions dialog.
+            val requestPermissionLauncher = registerForActivityResult(
+                ActivityResultContracts.RequestPermission()
+            ) { isGranted: Boolean ->
+                if (isGranted) {
+                    // Permission is granted. Continue the action or workflow in your
+                    // app.
+                } else {
+                    // Permission is denied. Notify the user that the feature won't be available
+                }
+            }
+
+            // Show an educational UI explaining why the app needs this permission
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.POST_NOTIFICATIONS)) {
+                // Show your own UI to explain why the permission is needed and then request the permission
+                // Show rationale and request permission.
+                showPermissionRationale {
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            } else {
+                // Directly request for required permission
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    private fun showPermissionRationale(onRationaleAccepted: () -> Unit) {
+        // Show a dialog or other UI to explain why the permission is needed
+        // Call onRationaleAccepted() when the user accepts the rationale
+        AlertDialog.Builder(this)
+            .setTitle("Notification Permission Needed")
+            .setMessage("This app needs notification permission to keep you updated with the status of the iperf test.")
+            .setPositiveButton("OK") { _, _ ->
+                onRationaleAccepted()
+            }
+            .setNegativeButton("Cancel", null)
+            .create()
+            .show()
+    }
     private fun startIperf(){
 
         val path =  applicationInfo.nativeLibraryDir + "/libiperf3.16.so"
@@ -256,6 +303,13 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
             startActivity(Intent(applicationContext, IperfInputs::class.java))
             finish()
         }
+    }
+
+    override fun stopIperfTest(process: Process, inputStream: InputStream, reader: BufferedReader) {
+        process.destroy()
+        inputStream.close()
+        reader.close()
+        isTimerRunning = true
     }
 
     override fun durationOfClient() {
@@ -484,5 +538,6 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         Log.d("Command At method",command)
         return command
     }
+
 
 }
