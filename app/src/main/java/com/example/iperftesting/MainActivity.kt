@@ -2,8 +2,6 @@ package com.example.iperftesting
 
 import android.Manifest
 import android.app.AlertDialog
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 
@@ -12,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.storage.StorageManager
 import android.system.ErrnoException
 import android.system.Os
 import android.util.Log
@@ -21,21 +20,19 @@ import android.widget.ScrollView
 
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+
 import java.io.BufferedReader
 import java.io.File
-import java.io.IOException
 import java.io.InputStream
-import java.io.InputStreamReader
-import java.io.Serializable
+
+
 
 
 class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
@@ -49,6 +46,8 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
     private lateinit var backButton: Button
     private lateinit var summaryButton: Button
     private lateinit var scrollOutput: ScrollView
+    private lateinit var rsrpTextViewSim1: TextView
+    private lateinit var rsrqTextViewSim1: TextView
     private val FOREGROUND_PERMISSION_REQUEST = 124
 
 
@@ -56,12 +55,14 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
     private var elapsedTimeSeconds: Int = 0
     private val timerHandler = Handler(Looper.getMainLooper())
     private var isTimerRunning = false
-    private var bitrate = 0
-    private var errorFound = false
-    private var onBackPressed = false
-    private lateinit var allBitrate : ArrayList<Int>
+    private var bitrate = 0.0
+    override var errorFound = false
+    var onBackPressed = false
+
+    private lateinit var allBitrateGraph: ArrayList<String>
 
     private var time: Int = 0
+    private var saveToFile: Boolean = false
     private var transferredData: Int = 0
     private var transferredUnits: String = ""
     private var lostPackets: Int = 0
@@ -69,8 +70,12 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
     private val MY_PERMISSIONS_REQUEST_INTERNET = 123
     private var totalTime: Int = 0
     private var streams: String ?= ""
+    private lateinit var requestPermissionsLauncher: ActivityResultLauncher<Array<String>>
+    private lateinit var myCelInfo: MyCellInfo
+    private var storageManager: StorageManager ?= null
+    private var fileOutput: File ?= null
 
-
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -82,7 +87,16 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         backButton = findViewById(R.id.goBack)
         summaryButton = findViewById(R.id.nextOutput)
         scrollOutput = findViewById(R.id.outputScroll)
-        allBitrate = ArrayList()
+        rsrpTextViewSim1 = findViewById(R.id.rsrpTextViewSim1)
+        rsrqTextViewSim1 = findViewById(R.id.rsrqTextViewSim1)
+//        getGraphButton = findViewById(R.id.getGraph)
+
+        allBitrateGraph = ArrayList()
+        storageManager = getSystemService(STORAGE_SERVICE) as StorageManager
+//        graphIntent = Intent(this,GraphTR::class.java)
+
+        val storageVolume = storageManager!!.storageVolumes[0]
+        fileOutput = File(storageVolume.directory?.path + "/Download/IperfLogData.txt")
 
         IperfServiceManager.actionListener = this
         IperfServiceManager.callback = this
@@ -90,6 +104,21 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         checkAndRequestInternetPermission()
         requestNotificationPermission()
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            requestPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+                val granted = permissions[Manifest.permission.READ_PHONE_STATE] == true &&
+                        permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+                if (granted) {
+                    myCelInfo.initialize(requestPermissionsLauncher)
+                } else {
+                    // Handle the case where permissions are not granted
+                }
+            }
+        }
+
+
+        myCelInfo = MyCellInfo(this,rsrpTextViewSim1,rsrqTextViewSim1)
+        myCelInfo.initialize(requestPermissionsLauncher)
 
         resultTextView.text = ""
         output.text = ""
@@ -97,7 +126,9 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         summaryButton.setOnClickListener {
             onDisplayingFinalOutput()
         }
+
     }
+
 
     private fun requestNotificationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -176,16 +207,17 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
     private fun performIperf(): Boolean{
         Log.d("Perform iperf method","Entered the method")
         //"iperf3","-c",ipAddress,"-u","-t","12","-b","800M","R"
-        val command = onGetCommand()
-        Log.d("Command",command)
-        Toast.makeText(applicationContext,command,Toast.LENGTH_SHORT).show()
         isTimerRunning = false
 
+        val command = onGetCommand()
+        Toast.makeText(applicationContext,command,Toast.LENGTH_SHORT).show()
 
-        if(command == "-s"){
+        val chosenSystem = intent.getStringExtra("systemChosen")
+        if(chosenSystem == "-s"){
             duration.text = "Total:${formatDuration(0)}"
-        }else{
 
+        }else{
+            summaryButton.isEnabled = false
             if(totalTime == 0){
                 time = 300
                 duration.text = "Total:${formatDuration(time)}"
@@ -202,11 +234,19 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
     private fun startIperfService(serviceRunning: Boolean) {
 
         isRunning = true
-        allBitrate.clear()
+        allBitrateGraph.clear()
         val serviceIntent = Intent(this, IperfService::class.java)
         val command = onGetCommand()
+        Toast.makeText(applicationContext,command,Toast.LENGTH_SHORT).show()
+        saveToFile = intent.getBooleanExtra("saveToFile",false)
+
+        Log.d("saveToFile",saveToFile.toString())
+
+        val chosenSystem = intent.getStringExtra("systemChosen")
         serviceIntent.putExtra("command",command)
+        serviceIntent.putExtra("chosenSystem",chosenSystem)
         serviceIntent.putExtra("path",applicationInfo.nativeLibraryDir + "/libiperf3.16.so")
+        serviceIntent.putExtra("saveToFile",saveToFile)
         if(!serviceRunning){
             Toast.makeText(applicationContext,"Started Service",Toast.LENGTH_SHORT).show()
             startService(serviceIntent)
@@ -225,20 +265,22 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         stopButton.text = "Restart"
     }
 
-    override fun onResultReceived(line: String?) {
-
-        Log.d("Output",line.toString())
-        output.append(line.toString()+"\n")
+    override fun onResultReceived(result: String?) {
+        output.append(result.toString()+"\n")
         scrollOutput.post {
             scrollOutput.fullScroll(View.FOCUS_DOWN)
         }
-        displayingOutput(line)
-        getTransferredData(line)
-        getLostNoOfPackets(line)
+
+
+        displayingOutput(result)
+        getTransferredData(result)
+        getLostNoOfPackets(result)
+
     }
 
     override fun onSummaryButtonEnabled(value: Boolean) {
         summaryButton.isEnabled = value
+//        getGraphButton.isEnabled = value
     }
 
     override fun durationOfServer() {
@@ -246,7 +288,7 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
             timerHandler.post(object : Runnable {
                 override fun run() {
                     // Update elapsed time text view
-                    current.text = "${formatDuration(elapsedTimeSeconds)}"
+                    current.text = formatDuration(elapsedTimeSeconds)
                     elapsedTimeSeconds += 1
                     // Check if iperf test is finished (example condition)
 
@@ -273,11 +315,11 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
                     isRunning = false
                     summaryButton.isEnabled = false
                     isTimerRunning = false
-
                     Toast.makeText(applicationContext,"Stopped Testing",Toast.LENGTH_SHORT).show()
                 }
             else{
                 if(stopButton.text == "Restart"){
+                    errorFound = false
                     stopButton.text = "Stop"
                     output.text = ""
                     elapsedTimeSeconds = 0
@@ -340,7 +382,9 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
 
         val finalIntent = Intent(applicationContext,FinalOutput::class.java)
 
-        finalIntent.putIntegerArrayListExtra("bitrate list",allBitrate)
+        finalIntent.putExtra("saveToFile",saveToFile)
+        finalIntent.putStringArrayListExtra("bitrate graph",allBitrateGraph)
+        finalIntent.putExtra("totalTime",time)
         finalIntent.putExtra("transferred data",transferredData)
         finalIntent.putExtra("Units of Data",transferredUnits)
         finalIntent.putExtra("duration",time)
@@ -363,7 +407,6 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
             }
         }
     }
-
     override fun getTransferredData(line: String?) {
         if(line.toString().contains("sender")){
             Log.d("sender","entered sender loop")
@@ -390,30 +433,38 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         } else {
             Log.d("normal","entered normal loop")
             bitrate = displayBitRate(line)
-            if(bitrate >=0){
-                resultTextView.text = bitrate.toString()
-                Log.d("bitrate",bitrate.toString())
-            }
+//            if(bitrate >=0){
+//
+//            }
+            resultTextView.text = bitrate.toString()
+            Log.d("bitrate",bitrate.toString())
+
         }
     }
 
-    private fun displayBitRate(line: String?): Int{
+    private fun displayBitRate(line: String?): Double{
 
-        if (line.toString().contains("bits/sec")) {
+        if (line.toString().contains("bits/sec") && !line.toString().contains("sender") && !line.toString().contains("receiver")) {
             val bitrateRegex = Regex("""\d+(\.\d+)? [GKM]bits/sec""")
             val matchResult = bitrateRegex.find(line!!)
+
             matchResult?.let {
                 val bitrate = it.value.split(" ")[0].toDouble()
                 Log.d("bitsInterval",bitrate.toString())
-                allBitrate.add(bitrate.toInt())
-                Log.d("allBitrate",allBitrate.toString())
-                return bitrate.toInt()
+
+                allBitrateGraph.add(bitrate.toString())
+
+                Log.d("allBitrateGraph",allBitrateGraph.toString())
+                return bitrate
             }
         }
         return bitrate
     }
+    override fun getRsrp(): String {
+        return rsrpTextViewSim1.text.toString()
+    }
 
-
+    @RequiresApi(Build.VERSION_CODES.P)
     private fun checkAndRequestInternetPermission() {
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -444,6 +495,7 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         else {
             // Permission is already granted
             startIperf()
+
         }
     }
     override fun onRequestPermissionsResult(
@@ -539,5 +591,9 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         return command
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        myCelInfo.stopUpdates()
+    }
 
 }

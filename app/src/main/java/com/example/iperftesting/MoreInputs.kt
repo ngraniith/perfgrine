@@ -13,6 +13,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.RadioButton
+import android.widget.Toast
 import com.example.iperftesting.databinding.FragmentMoreInputsBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -22,7 +23,7 @@ class MoreInputs : BottomSheetDialogFragment() {
     private lateinit var binding: FragmentMoreInputsBinding
 
     private var radioButtonSelectedIndex: Int = -1
-    private var reverseRadioButtonIndex: Int = -1
+    private var reverseCheckBox: Boolean = false
     private var spinnerSelectedItemPosition: Int = 0
     private var streamSelectedItemPosition: Int = 0
     private var customBandwidth: String = ""
@@ -105,12 +106,65 @@ class MoreInputs : BottomSheetDialogFragment() {
         binding.reverseHelp.setOnClickListener {
             showHelpDialog("Reverse")
         }
-        if(binding.reverseMode.isChecked){
-            binding.reverseMode.setOnClickListener {
-                binding.reverseGroup.clearCheck()
-            }
+
+        binding.saveChanges.setOnClickListener {
+
+            saveInputs()
+            Toast.makeText(context,"Saved the Inputs",Toast.LENGTH_SHORT).show()
+            dismiss()
         }
 
+    }
+
+    private fun saveInputs() {
+        val sharedPreferences = requireContext().getSharedPreferences("getIperfInputs",Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString("port value",binding.portNumber.text.toString())
+        radioButtonSelectedIndex = binding.protocolGroup.indexOfChild(requireView().findViewById(binding.protocolGroup.checkedRadioButtonId))
+        editor.putInt("radioButtonSelectedIndex",radioButtonSelectedIndex)
+
+        if(radioButtonSelectedIndex !=-1){
+            when (binding.protocolGroup.getChildAt(radioButtonSelectedIndex).id) {
+                R.id.udp_button -> {
+                    editor.putString("protocol","-u")
+                }
+                R.id.tcp_button -> {
+                    editor.putString("protocol","")
+                }
+                else -> {
+                    editor.putString("protocol","")
+                }
+            }
+        }
+        reverseCheckBox = binding.reverseModeCheck.isChecked
+        editor.putBoolean("reverseModeIsSelected",reverseCheckBox)
+        if(binding.reverseModeCheck.isChecked){
+            editor.putString("mode","R")
+        }else{
+            editor.putString("mode","")
+        }
+
+        spinnerSelectedItemPosition = binding.bandSpinner.selectedItemPosition
+
+        editor.putInt("selectedBandwidth",spinnerSelectedItemPosition)
+        Log.d("selectedItemPosition", spinnerSelectedItemPosition.toString())
+
+        val bandItem = binding.bandSpinner.getItemAtPosition(spinnerSelectedItemPosition).toString()
+        editor.putString("bandItem",bandItem)
+        Log.d("bandwidthItems",bandwidthItems.toString())
+
+        Log.d("changed bandwidth",bandItem)
+
+        streamSelectedItemPosition = binding.parallelStreams.selectedItemPosition
+        editor.putInt("selectedStreams",streamSelectedItemPosition)
+
+        val noStreams =binding.parallelStreams.getItemAtPosition(streamSelectedItemPosition).toString()
+        editor.putString("streams",noStreams)
+
+        editor.putInt("num hrs",binding.numHrs.value)
+        editor.putInt("num mins",binding.numMins.value)
+        editor.putInt("num secs",binding.numSecs.value)
+        editor.apply()
     }
 
     private fun showHelpDialog(parameter: String) {
@@ -191,14 +245,13 @@ class MoreInputs : BottomSheetDialogFragment() {
             binding.numMins.isEnabled = false
             binding.numSecs.isEnabled = false
             binding.parallelStreams.isEnabled = false
-            binding.reverseMode.isEnabled = false
+            binding.reverseModeCheck.isEnabled = false
 
     }
     private fun clearInputs(){
 
         binding.portNumber.text.clear()
         binding.protocolGroup.clearCheck()
-        binding.reverseGroup.clearCheck()
         binding.bandSpinner.setSelection(0)
         binding.numHrs.value = 0
         binding.numMins.value = 0
@@ -207,70 +260,10 @@ class MoreInputs : BottomSheetDialogFragment() {
         val sharedPreferences = requireContext().getSharedPreferences("getIperfInputs",Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.clear().apply()
-
     }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
-
-        val sharedPreferences = requireContext().getSharedPreferences("getIperfInputs",Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.putString("port value",binding.portNumber.text.toString())
-        radioButtonSelectedIndex = binding.protocolGroup.indexOfChild(requireView().findViewById(binding.protocolGroup.checkedRadioButtonId))
-        editor.putInt("radioButtonSelectedIndex",radioButtonSelectedIndex)
-
-        if(radioButtonSelectedIndex !=-1){
-            when (binding.protocolGroup.getChildAt(radioButtonSelectedIndex).id) {
-                R.id.udp_button -> {
-                    editor.putString("protocol","-u")
-                }
-                R.id.tcp_button -> {
-                    editor.putString("protocol","")
-                }
-                else -> {
-                    editor.putString("protocol","")
-                }
-            }
-        }
-        reverseRadioButtonIndex = binding.reverseGroup.indexOfChild(requireView().findViewById(binding.reverseGroup.checkedRadioButtonId))
-        editor.putInt("reverseModeSelected",reverseRadioButtonIndex)
-
-        Log.d("reverse checked or not",reverseRadioButtonIndex.toString())
-
-        if(reverseRadioButtonIndex != -1){
-            val modeId = binding.reverseGroup.getChildAt(reverseRadioButtonIndex).id
-            if(modeId == R.id.reverseMode){
-                editor.putString("mode","R")
-            }else{
-                editor.putString("mode","")
-            }
-
-        }
-        spinnerSelectedItemPosition = binding.bandSpinner.selectedItemPosition
-
-        editor.putInt("selectedBandwidth",spinnerSelectedItemPosition)
-        Log.d("selectedItemPosition", spinnerSelectedItemPosition.toString())
-
-        val bandItem = binding.bandSpinner.getItemAtPosition(spinnerSelectedItemPosition).toString()
-        editor.putString("bandItem",bandItem)
-        Log.d("bandwidthItems",bandwidthItems.toString())
-
-        Log.d("changed bandwidth",bandItem)
-
-        streamSelectedItemPosition = binding.parallelStreams.selectedItemPosition
-        editor.putInt("selectedStreams",streamSelectedItemPosition)
-
-        val noStreams =binding.parallelStreams.getItemAtPosition(streamSelectedItemPosition).toString()
-        editor.putString("streams",noStreams)
-
-        editor.putInt("num hrs",binding.numHrs.value)
-        editor.putInt("num mins",binding.numMins.value)
-        editor.putInt("num secs",binding.numSecs.value)
-        editor.apply()
-    }
-
     override fun onResume() {
         super.onResume()
+
         val sharedPreferences = requireContext().getSharedPreferences("getIperfInputs",Context.MODE_PRIVATE)
 
         val portNum = sharedPreferences.getString("port value","")
@@ -286,11 +279,11 @@ class MoreInputs : BottomSheetDialogFragment() {
 
         Log.d("protocol selected",sharedPreferences.getString("protocol","").toString())
 
-        reverseRadioButtonIndex = sharedPreferences.getInt("reverseModeSelected",-1)
 
-        if(reverseRadioButtonIndex != -1){
-            val modeId = binding.reverseGroup.getChildAt(reverseRadioButtonIndex).id
-            binding.reverseGroup.check(modeId)
+        reverseCheckBox = sharedPreferences.getBoolean("reverseModeIsSelected",false)
+
+        if(reverseCheckBox){
+            binding.reverseModeCheck.isChecked = true
         }
         Log.d("reverse mode",sharedPreferences.getString("mode","").toString())
 

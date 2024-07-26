@@ -15,8 +15,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout4"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_40sdp">
+            android:layout_height="wrap_content">
 
             <TextView
                 android:id="@+id/textView7"
@@ -189,7 +188,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout8"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_100sdp"
+            android:layout_height="@dimen/_70sdp"
             android:layout_marginTop="@dimen/_10sdp">
 
             <TextView
@@ -215,15 +214,62 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.505" />
+                app:layout_constraintVertical_bias="0.714" />
 
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_100sdp"
+            android:layout_marginTop="@dimen/_10sdp">
+
+            <Button
+                android:id="@+id/rsrpButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RSRP Graph"
+                app:layout_constraintBottom_toTopOf="@+id/throughputButton"
+                app:layout_constraintEnd_toStartOf="@+id/rsrpVsThroughputButton"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/throughputButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Throughput"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.497"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.963" />
+
+            <Button
+                android:id="@+id/rsrpVsThroughputButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RSRP Vs Throughput"
+                app:layout_constraintBottom_toTopOf="@+id/throughputButton"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toEndOf="@+id/rsrpButton"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.5" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout9"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_150sdp">
+            android:layout_marginTop="@dimen/_100sdp">
 
             <Button
                 android:id="@+id/backToMain"
@@ -236,7 +282,31 @@
                 app:layout_constraintHorizontal_bias="0.085"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.0" />
+                app:layout_constraintVertical_bias="1.0" />
+
+            <ImageView
+                android:id="@+id/filePathButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/baseline_file_download_done_24"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.905"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.666" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="File Path"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/filePathButton"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toEndOf="@+id/backToMain"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.448" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </LinearLayout>

@@ -16,28 +16,29 @@
         android:background="#fff7ad"
         android:orientation="vertical">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
+            style="@style/SCREEN"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_100sdp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0">
+
+            <ImageView
+                android:id="@+id/imageView"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/_100sdp"
-                style="@style/SCREEN"
-                android:orientation="horizontal"
+                android:layout_height="match_parent"
+                android:src="@drawable/hello"
                 app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.0">
+                app:layout_constraintVertical_bias="0.5" />
 
-                <ImageView
-                    android:id="@+id/imageView"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/hello"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.5"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.5" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -48,7 +49,7 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_15sdp">
+                    android:layout_marginTop="@dimen/_8sdp">
 
                     <TextView
                         android:id="@+id/command"
@@ -71,7 +72,47 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_25sdp">
+                    android:layout_marginTop="@dimen/_15sdp">
+
+                    <RadioGroup
+                        android:id="@+id/SimRadioGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.5"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_bias="0.5">
+
+                        <RadioButton
+                            android:id="@+id/Sim1RadioButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="@dimen/_10sdp"
+                            android:gravity="center"
+                            android:layout_gravity="center"
+                            android:textColor="@color/black"
+                            android:text="SIM1" />
+
+                        <RadioButton
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/Sim2RadioButton"
+                            android:layout_gravity="center"
+                            android:textColor="@color/black"
+                            android:layout_marginStart="@dimen/_50sdp"
+                            android:padding="@dimen/_10sdp"
+                            android:text="SIM2"/>
+                    </RadioGroup>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_20sdp">
 
                     <RadioGroup
                         android:id="@+id/system"
@@ -202,8 +243,27 @@
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <CheckBox
+                        android:id="@+id/saveLogsFile"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Save Logs to File"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.497"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_bias="0.0" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
                     android:layout_height="@dimen/_70sdp"
-                    android:layout_marginTop="@dimen/_45sdp">
+                    android:layout_marginTop="@dimen/_20sdp">
 
                     <TextView
                         android:id="@+id/more_text"

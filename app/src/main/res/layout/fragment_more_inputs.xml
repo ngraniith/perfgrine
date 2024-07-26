@@ -402,36 +402,31 @@
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <RadioGroup
-                    android:id="@+id/reverse_group"
+                <CheckBox
+                    android:id="@+id/reverseModeCheck"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:text="Reverse Mode"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/_10ssp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.5"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.5">
+                    app:layout_constraintVertical_bias="0.5" />
 
-                    <RadioButton
-                        android:id="@+id/reverseMode"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/custom_radio_selector"
-                        android:button="@color/white"
-                        android:gravity="center"
-                        android:text="Reverse Mode"
-                        android:textSize="@dimen/_10ssp"
-                        style="@style/TEXT" />
-                    <ImageView
-                        android:id="@+id/reverseHelp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:src="@drawable/question_mark" />
-
-                </RadioGroup>
+                <ImageView
+                    android:id="@+id/reverseHelp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:src="@drawable/question_mark"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.105"
+                    app:layout_constraintStart_toEndOf="@+id/reverseModeCheck"
+                    app:layout_constraintTop_toTopOf="parent" />
 
 
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -456,6 +451,20 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintVertical_bias="0.0" />
+
+                <Button
+                    android:id="@+id/saveChanges"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Save"
+                    android:background="@drawable/custom_radio_normal"
+                    android:textSize="@dimen/_12ssp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.5" />
 
                 <Button
                     android:id="@+id/back"

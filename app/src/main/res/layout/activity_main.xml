@@ -7,14 +7,13 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:paddingLeft="@dimen/_16sdp"
-    android:paddingTop="@dimen/_16sdp"
     android:paddingRight="@dimen/_16sdp"
     android:paddingBottom="@dimen/_16sdp"
     tools:context=".MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -60,6 +59,42 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_20sdp">
+
+            <TextView
+                android:id="@+id/rsrpTextViewSim1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="RSRP:"
+                android:textColor="@color/black"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.14"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.0" />
+
+            <TextView
+                android:id="@+id/rsrqTextViewSim1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="RSRQ:"
+                android:textColor="@color/black"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.794"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.0" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -76,13 +111,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:layout_marginTop="@dimen/_40sdp"
                 android:gravity="center"
                 android:hint="0"
-                android:layout_marginTop="@dimen/_40sdp"
                 android:textSize="@dimen/_96ssp"
                 app:layout_constraintBottom_toTopOf="@+id/Units"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_bias="0.5" />
@@ -104,7 +139,7 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <ScrollView
+        <ScrollView
                 android:id="@+id/outputScroll"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_170sdp"
@@ -120,10 +155,30 @@
                 android:textSize="@dimen/_10ssp" />
             </ScrollView>
 
+<!--        <androidx.constraintlayout.widget.ConstraintLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginTop="@dimen/_20sdp">-->
+
+<!--            <Button-->
+<!--                android:id="@+id/getGraph"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="Graph"-->
+<!--                android:enabled="false"-->
+<!--                app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintHorizontal_bias="0.5"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent"-->
+<!--                app:layout_constraintVertical_bias="0.5" />-->
+<!--        </androidx.constraintlayout.widget.ConstraintLayout>-->
+
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_100sdp"
+            android:layout_marginTop="@dimen/_50sdp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
@@ -161,7 +216,6 @@
                 android:id="@+id/nextOutput"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:enabled="false"
                 android:text="Summary"
                 android:textSize="@dimen/_12ssp"
                 app:layout_constraintBottom_toBottomOf="parent"

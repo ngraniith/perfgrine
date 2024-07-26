@@ -4,8 +4,19 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+
+            <data android:mimeType="text/plain" />
+        </intent>
+    </queries>
 
     <application
         android:allowBackup="true"
@@ -18,11 +29,28 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.IperfTesting"
         tools:targetApi="31">
+        <activity
+            android:name=".RsrpVsThroughputGraph"
+            android:exported="false" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <activity
+            android:name=".GraphTR"
+            android:exported="false" />
 
         <service
             android:name=".IperfService"
             android:enabled="true"
-            android:foregroundServiceType="dataSync"/>
+            android:foregroundServiceType="dataSync" />
 
         <activity
             android:name=".FinalOutput"
@@ -37,12 +65,9 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MyIntroScreen"
-            android:exported="true" />
-        <activity
             android:name=".MainActivity"
-            android:launchMode="singleTask"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>
