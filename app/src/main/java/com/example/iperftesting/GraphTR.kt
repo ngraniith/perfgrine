@@ -133,7 +133,13 @@ class GraphTR : AppCompatActivity() {
         if (graphName == "Throughput") {
             yAxis.valueFormatter = object : ValueFormatter() {
                 override fun getFormattedValue(value: Float): String {
-                    return "${value.toInt()} Mbps" // Append 'Mbps' to denote throughput
+
+                    if(ReadValuesFromFile.units == "Mbps"){
+                        return "${value.toInt()} Mbps" // Append 'Mbps' to denote throughput
+                    }
+                    else{
+                        return "${value.toInt()} Kbps"
+                    }
                 }
             }
         } else {

@@ -12,6 +12,7 @@ object ReadValuesFromFile {
     private lateinit var lineDataSet: LineDataSet
     private lateinit var lineDataSetR: LineDataSet
     private lateinit var lineDataSetTh: LineDataSet
+    var units: String = "Mbps"
     fun getValuesThRS(filePath: File, chosenGraph: String): LineDataSet {
 
         if(filePath.exists()){
@@ -44,7 +45,13 @@ object ReadValuesFromFile {
                         }
                         else if (chosenGraph == "throughput") {
 
-                            lineDataSet.addEntry(Entry(index, throughputValue))
+                            if(throughputValue < 1){
+                                units = "Kbps"
+                                lineDataSet.addEntry(Entry(index, (throughputValue * 1000)))
+                            }else{
+                                lineDataSet.addEntry(Entry(index, throughputValue))
+                            }
+
                             Log.d("lineDataSet",lineDataSet.toString())
                         }
 
@@ -84,7 +91,14 @@ object ReadValuesFromFile {
 
                         Log.d("index",index.toString())
 
-                        lineDataSetTh.addEntry(Entry(index,throughputValue))
+                        if(throughputValue < 1) {
+                            units = "Kbps"
+                            lineDataSetTh.addEntry(Entry(index, (throughputValue * 1000)))
+                        }
+                        else
+                            lineDataSetTh.addEntry(Entry(index,throughputValue))
+
+
                         lineDataSetR.addEntry(Entry(index,rsrpValue))
 
                         index++

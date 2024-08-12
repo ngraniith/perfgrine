@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
     private lateinit var scrollOutput: ScrollView
     private lateinit var rsrpTextViewSim1: TextView
     private lateinit var rsrqTextViewSim1: TextView
+    private lateinit var unitsThroughput: TextView
     private val FOREGROUND_PERMISSION_REQUEST = 124
 
 
@@ -85,6 +86,7 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         duration = findViewById(R.id.totalDuration)
         current = findViewById(R.id.currentTime)
         backButton = findViewById(R.id.goBack)
+        unitsThroughput = findViewById(R.id.Units)
         summaryButton = findViewById(R.id.nextOutput)
         scrollOutput = findViewById(R.id.outputScroll)
         rsrpTextViewSim1 = findViewById(R.id.rsrpTextViewSim1)
@@ -426,17 +428,28 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
             if(line.toString().contains("[SUM]")){
                 Log.d("Sum","entered sum loop")
                 bitrate = displayBitRate(line)
-                if(bitrate >= 0){
+                if(bitrate >= 1){
                     resultTextView.text = bitrate.toString()
+                    unitsThroughput.text = "Mbits/sec"
+                }
+                else{
+                    resultTextView.text = (bitrate * 100.0).toString()
+                    unitsThroughput.text = "Kbits/sec"
                 }
             }
         } else {
             Log.d("normal","entered normal loop")
             bitrate = displayBitRate(line)
-//            if(bitrate >=0){
-//
-//            }
-            resultTextView.text = bitrate.toString()
+
+            if(bitrate < 1){
+                resultTextView.text = (bitrate * 1000.0).toString()
+                unitsThroughput.text = "Kbits/sec"
+            }
+            else{
+                resultTextView.text = bitrate.toString()
+                unitsThroughput.text = "Mbits/sec"
+            }
+
             Log.d("bitrate",bitrate.toString())
 
         }
