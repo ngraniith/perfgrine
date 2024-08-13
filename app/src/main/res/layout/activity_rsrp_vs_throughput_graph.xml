@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,36 +10,61 @@
     tools:context=".RsrpVsThroughputGraph">
 
     <RelativeLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
-        <com.github.mikephil.charting.charts.LineChart
-            android:id="@+id/lineChartR"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_marginTop="@dimen/_20sdp"
-            android:layout_height="@dimen/_250sdp"/>
+            android:layout_height="wrap_content">
 
-        <com.github.mikephil.charting.charts.LineChart
-            android:id="@+id/lineChartTh"
-            android:layout_width="match_parent"
-            android:layout_marginTop="@dimen/_270sdp"
-            android:layout_height="@dimen/_250sdp" />
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/lineChartR"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_250sdp"
+                app:layout_constraintBottom_toTopOf="@+id/lineChartTh"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/screenRotation"
+                app:layout_constraintVertical_bias="0.5" />
 
-        <ImageView
-            android:id="@+id/screenRotation"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="@dimen/_5sdp"
-            android:src="@drawable/baseline_screen_rotation_24"
-            android:contentDescription="orientation">
-        </ImageView>
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/lineChartTh"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_250sdp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/lineChartR"
+                app:layout_constraintVertical_bias="0.5" />
+
+            <ImageView
+                android:id="@+id/screenRotation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="orientation"
+                android:padding="@dimen/_5sdp"
+                android:src="@drawable/baseline_screen_rotation_24"
+                app:layout_constraintBottom_toTopOf="@+id/lineChartR"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.918"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.5" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <Button
             android:id="@+id/backButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Back"
             android:layout_marginTop="@dimen/_550sdp"
-            android:text="Back" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5" />
+
     </RelativeLayout>
 
 </ScrollView>

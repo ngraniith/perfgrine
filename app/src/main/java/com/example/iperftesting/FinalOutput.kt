@@ -20,13 +20,16 @@ class FinalOutput : AppCompatActivity() {
 
     private lateinit var binding: ActivityFinalOutputBinding
     private lateinit var doubleList: List<Double>
+    private lateinit var graphIntent: Intent
+    private lateinit var rvsT: Intent
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityFinalOutputBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val graphIntent = Intent(this,GraphTR::class.java)
+        graphIntent = Intent(this,GraphTR::class.java)
+        rvsT = Intent(this,RsrpVsThroughputGraph::class.java)
 
         displaySummary()
         binding.backToMain.setOnClickListener {
@@ -71,8 +74,6 @@ class FinalOutput : AppCompatActivity() {
 
         binding.rsrpVsThroughputButton.setOnClickListener {
 
-            val rvsT = Intent(this,RsrpVsThroughputGraph::class.java)
-
             rvsT.putExtra("totalTime",intent.getIntExtra("totalTime",0))
             ReadValuesFromFile.combinedGraph(logFile,intent.getIntExtra("totalTime",0))
             startActivity(rvsT)
@@ -115,7 +116,12 @@ class FinalOutput : AppCompatActivity() {
         if (receivedArrayList.isNotEmpty()) {
             binding.minBitrate.append( doubleList.minOrNull().toString() + " Mbps")
             binding.maxBitrate.append(doubleList.maxOrNull().toString() + " Mbps")
+
+            graphIntent.putExtra("maxThroughput",doubleList.maxOrNull())
+            rvsT.putExtra("maxThroughput",doubleList.maxOrNull())
+
             val average = doubleList.average()
+
             binding.avgBitrate.append(String.format("%.2f Mbps", average))
 
             binding.transferredData.append(intent.getIntExtra("transferred data",0).toString()+ " "+intent.getStringExtra("Units of Data"))

@@ -108,13 +108,25 @@ class RsrpVsThroughputGraph : AppCompatActivity() {
 //            yAxis.axisMaximum = -30f // Assuming RSRP values won't be positive
 //        } else {
 //            yAxis.axisMinimum = 0f
+//
+//            Log.d("maxThroughput",intent.getDoubleExtra("maxThroughput",0.0).toFloat().toString())
 //        }
+        if(graphName == "Throughput"){
+            yAxis.axisMinimum = 0f
+        }
+
         yAxis.axisLineWidth = 4f
+
 
         if (graphName == "Throughput") {
             yAxis.valueFormatter = object : ValueFormatter() {
                 override fun getFormattedValue(value: Float): String {
-                    return "${value.toInt()} Mbps" // Append 'Mbps' to denote throughput
+//                    return "${value.toInt()} Mbps" // Append 'Mbps' to denote throughput
+                    if(value < 1){
+                        return String.format("%.2f Mbps", value)
+                    }else
+                        return "${value.toInt()} Mbps"
+
                 }
             }
         } else {
