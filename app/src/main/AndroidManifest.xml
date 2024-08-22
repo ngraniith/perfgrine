@@ -30,6 +30,9 @@
         android:theme="@style/Theme.IperfTesting"
         tools:targetApi="31">
         <activity
+            android:name=".PingTest"
+            android:exported="false" />
+        <activity
             android:name=".RsrpVsThroughputGraph"
             android:exported="false" />
 

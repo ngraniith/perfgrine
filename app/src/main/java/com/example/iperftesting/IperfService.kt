@@ -30,7 +30,6 @@ import java.io.InputStreamReader
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.regex.Pattern
 
 class IperfService : Service() {
 
@@ -54,6 +53,7 @@ class IperfService : Service() {
 
     private lateinit var logFileWriter: BufferedWriter
     private lateinit var directory: File
+    private lateinit var logFile: File
 
     override fun onBind(intent: Intent): IBinder {
         TODO("Return the communication channel to the service.")
@@ -114,8 +114,6 @@ class IperfService : Service() {
                     actionListener?.onBackButtonClicked(process!!, inputStream!!, reader!!)
                     actionListener?.onStopRestartClicked(process)
                 }
-
-
                 var line: String?
                 while (reader?.readLine().also { line = it } != null) {
 
@@ -162,19 +160,23 @@ class IperfService : Service() {
                 if (errorFound) {
                     Log.d("error", "so can't display final output")
                     withContext(Dispatchers.Main) {
-                        actionListener?.onSummaryButtonEnabled(false)
+//                        actionListener?.onSummaryButtonEnabled(true)
                         actionListener?.onStopRestartClicked(process)
                         actionListener?.stopIperfTest(process!!,inputStream!!,reader!!)
                         actionListener?.errorFound = true
                         actionListener?.toStopService(true)
                     }
 
-                } else {
-                    withContext(Dispatchers.Main) {
-                        actionListener?.onSummaryButtonEnabled(true)
-                        actionListener?.onDisplayingFinalOutput()
-                    }
-
+                }
+//                else {
+//                    withContext(Dispatchers.Main) {
+//                        actionListener?.onSummaryButtonEnabled(true)
+//                        actionListener?.onDisplayingFinalOutput()
+//                    }
+//                }
+                withContext(Dispatchers.Main) {
+                    actionListener?.onSummaryButtonEnabled(true)
+                    actionListener?.onDisplayingFinalOutput()
                 }
 
                 Log.d("Process", "Completed")
@@ -296,11 +298,11 @@ private fun parseIperfOutput(line: String) {
         val timeStamp = SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.getDefault()).format(Date())
         val fileName = "IperfTest $timeStamp.txt"
 
-        val file = File(directory,fileName)
+        logFile = File(directory,fileName)
         try{
-            val fileCreated = file.createNewFile()
+            val fileCreated = logFile.createNewFile()
             Log.d("FileCreation", "File created: $fileCreated")
-           logFileWriter = BufferedWriter(FileWriter(file))
+           logFileWriter = BufferedWriter(FileWriter(logFile))
             addTableHeader(logFileWriter)
             Log.d("FileCreation", "BufferedWriter initialized and header added")
         }catch(e: IOException){
@@ -308,7 +310,6 @@ private fun parseIperfOutput(line: String) {
             Log.e("FileCreation", "Error creating file: ${e.message}")
         }
     }
-
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "Iperf Service"

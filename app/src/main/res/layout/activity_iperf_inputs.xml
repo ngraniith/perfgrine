@@ -201,7 +201,7 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_20sdp">
+                    android:layout_marginTop="@dimen/_10sdp">
 
                     <EditText
                         android:id="@+id/ipaddress"
@@ -225,11 +225,60 @@
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <RadioGroup
+                        android:id="@+id/networkTest"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center_horizontal"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="@dimen/_10sdp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.5"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_bias="0.5">
+
+                        <RadioButton
+                            android:id="@+id/iperfTest"
+                            style="@style/TEXT"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.5"
+                            android:layout_marginStart="@dimen/_50sdp"
+                            android:layout_gravity="center"
+                            android:gravity="center_vertical"
+                            android:text="Iperf"
+                            android:textSize="@dimen/_14ssp"
+                            android:textStyle="bold" />
+
+                        <RadioButton
+                            android:id="@+id/ping"
+                            style="@style/TEXT"
+                            android:layout_weight="0.5"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:layout_gravity="center"
+                            android:text="Ping"
+                            android:textSize="@dimen/_14ssp"
+                            android:textStyle="bold">
+
+                        </RadioButton>
+
+                    </RadioGroup>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_20sdp">
+                    android:layout_marginTop="@dimen/_10sdp">
 
                     <Button
-                        android:id="@+id/ipbutton"
+                        android:id="@+id/startButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Start"
@@ -239,11 +288,13 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintVertical_bias="0.5" />
+
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_10sdp">
 
                     <CheckBox
                         android:id="@+id/saveLogsFile"
@@ -263,7 +314,7 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_70sdp"
-                    android:layout_marginTop="@dimen/_20sdp">
+                    android:layout_marginTop="@dimen/_10sdp">
 
                     <TextView
                         android:id="@+id/more_text"
@@ -289,8 +340,8 @@
 
                     <com.airbnb.lottie.LottieAnimationView
                         android:id="@+id/more_options"
-                        android:layout_width="@dimen/_92sdp"
-                        android:layout_height="@dimen/_83sdp"
+                        android:layout_width="112dp"
+                        android:layout_height="81dp"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintHorizontal_bias="0.5"

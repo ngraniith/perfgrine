@@ -111,6 +111,8 @@ class FinalOutput : AppCompatActivity() {
     private fun displaySummary() {
 
         val receivedArrayList = intent.getStringArrayListExtra("bitrate graph")
+        Log.d("received list",receivedArrayList.toString())
+
         doubleList = receivedArrayList?.map { it.toDouble() }!!
 
         if (receivedArrayList.isNotEmpty()) {

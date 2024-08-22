@@ -31,10 +31,6 @@ import androidx.core.content.ContextCompat
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
-
-
-
-
 class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
 
 
@@ -61,6 +57,7 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
     var onBackPressed = false
 
     private lateinit var allBitrateGraph: ArrayList<String>
+    private lateinit var serviceIntent: Intent
 
     private var time: Int = 0
     private var saveToFile: Boolean = false
@@ -102,6 +99,8 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
 
         IperfServiceManager.actionListener = this
         IperfServiceManager.callback = this
+
+        serviceIntent = Intent(this, IperfService::class.java)
 
         checkAndRequestInternetPermission()
         requestNotificationPermission()
@@ -211,9 +210,6 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         //"iperf3","-c",ipAddress,"-u","-t","12","-b","800M","R"
         isTimerRunning = false
 
-        val command = onGetCommand()
-        Toast.makeText(applicationContext,command,Toast.LENGTH_SHORT).show()
-
         val chosenSystem = intent.getStringExtra("systemChosen")
         if(chosenSystem == "-s"){
             duration.text = "Total:${formatDuration(0)}"
@@ -229,15 +225,15 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
             }
         }
 
-        startIperfService(false)
+        startIperfService()
         return true
     }
 
-    private fun startIperfService(serviceRunning: Boolean) {
+    private fun startIperfService() {
 
         isRunning = true
         allBitrateGraph.clear()
-        val serviceIntent = Intent(this, IperfService::class.java)
+
         val command = onGetCommand()
         Toast.makeText(applicationContext,command,Toast.LENGTH_SHORT).show()
         saveToFile = intent.getBooleanExtra("saveToFile",false)
@@ -249,18 +245,14 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         serviceIntent.putExtra("chosenSystem",chosenSystem)
         serviceIntent.putExtra("path",applicationInfo.nativeLibraryDir + "/libiperf3.16.so")
         serviceIntent.putExtra("saveToFile",saveToFile)
-        if(!serviceRunning){
-            Toast.makeText(applicationContext,"Started Service",Toast.LENGTH_SHORT).show()
-            startService(serviceIntent)
-        }else{
-            Toast.makeText(applicationContext,"Stopped Service",Toast.LENGTH_SHORT).show()
-            stopService(serviceIntent)
-        }
-
+//        Toast.makeText(applicationContext,"Started Service",Toast.LENGTH_SHORT).show()
+        startService(serviceIntent)
     }
 
     override fun toStopService(value: Boolean) {
-        startIperfService(value)
+
+        stopService(serviceIntent)
+//        Toast.makeText(applicationContext,"Stopped Service",Toast.LENGTH_SHORT).show()
     }
 
     override fun stopToRestart() {
@@ -309,15 +301,16 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
     override fun onStopRestartClicked(process: Process?) {
         stopButton.setOnClickListener {
             if(isRunning && stopButton.text == "Stop"){
-                    process?.destroy()
-                    stopButton.text = "Restart"
-                    elapsedTimeSeconds = 0
-                    timerHandler.removeCallbacksAndMessages(null)
-                    toStopService(true)
-                    isRunning = false
-                    summaryButton.isEnabled = false
-                    isTimerRunning = false
-                    Toast.makeText(applicationContext,"Stopped Testing",Toast.LENGTH_SHORT).show()
+                process?.destroy()
+                stopButton.text = "Restart"
+                elapsedTimeSeconds = 0
+                timerHandler.removeCallbacksAndMessages(null)
+                toStopService(true)
+                isRunning = false
+                summaryButton.isEnabled = true
+                isTimerRunning = false
+                Toast.makeText(applicationContext,"Stopped Testing",Toast.LENGTH_SHORT).show()
+
                 }
             else{
                 if(stopButton.text == "Restart"){
@@ -343,7 +336,7 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
             isTimerRunning = true
             toStopService(true)
             Log.d("Ended","Process Terminated")
-            Toast.makeText(applicationContext,"Stopped Testing",Toast.LENGTH_SHORT).show()
+//            Toast.makeText(applicationContext,"Stopped Testing",Toast.LENGTH_SHORT).show()
             startActivity(Intent(applicationContext, IperfInputs::class.java))
             finish()
         }

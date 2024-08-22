@@ -39,12 +39,6 @@ class IperfInputs : AppCompatActivity() {
         binding = ActivityIperfInputsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        if(arePermissionsGranted()){
-            Log.d("Phone and Location","Granted")
-        }else{
-            requestPermissions()
-        }
-
         ipAddress = binding.ipaddress
         radioGroup = binding.system
 
@@ -56,11 +50,9 @@ class IperfInputs : AppCompatActivity() {
             when (checkedId) {
                 R.id.Sim1RadioButton -> {
 
-                    Toast.makeText(this,"checked SIM1",Toast.LENGTH_SHORT).show()
                     SimChoice.setSimChoice("SIM1")
                 }
                 R.id.Sim2RadioButton -> {
-                    Toast.makeText(this,"checked SIM2",Toast.LENGTH_SHORT).show()
                     SimChoice.setSimChoice("SIM2")
                 }
                 else -> {
@@ -75,9 +67,24 @@ class IperfInputs : AppCompatActivity() {
             }
         }
 
-        onStartButtonPressed()
-        getSystemSelection()
+        binding.networkTest.setOnCheckedChangeListener{_,checkedId ->
 
+            when(checkedId){
+                R.id.iperfTest ->{
+
+                    if(arePermissionsGranted()){
+                        Log.d("Phone and Location","Granted")
+                    }else{
+                        requestPermissions()
+                    }
+                    getSystemSelection()
+                    onStartButtonPressedIperf()
+                }
+                R.id.ping -> {
+                    startPingTest()
+                }
+            }
+        }
 
         binding.moreOptions.setOnClickListener {
             val bottomSheet = MoreInputs()
@@ -96,6 +103,15 @@ class IperfInputs : AppCompatActivity() {
 
     }
 
+    private fun startPingTest(){
+
+        val pingIntent = Intent(this,PingTest::class.java)
+
+        binding.startButton.setOnClickListener {
+            pingIntent.putExtra("ipaddress",ipAddress.text.toString())
+            startActivity(pingIntent)
+        }
+    }
     private fun showAlertDialog() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Warning")
@@ -113,8 +129,8 @@ class IperfInputs : AppCompatActivity() {
         builder.show()
     }
 
-    private fun onStartButtonPressed() {
-        binding.ipbutton.setOnClickListener{
+    private fun onStartButtonPressedIperf() {
+        binding.startButton.setOnClickListener{
 
             val iperfIntent = Intent(this,MainActivity::class.java)
 
