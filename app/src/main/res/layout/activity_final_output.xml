@@ -3,8 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     style="@style/SCREEN"
+    android:orientation="vertical"
     tools:context=".FinalOutput">
 
     <LinearLayout
@@ -15,7 +16,8 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout4"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_20sdp">
 
             <TextView
                 android:id="@+id/textView7"
@@ -269,7 +271,7 @@
             android:id="@+id/constraintLayout9"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_100sdp">
+            android:layout_marginTop="@dimen/_60sdp">
 
             <Button
                 android:id="@+id/backToMain"

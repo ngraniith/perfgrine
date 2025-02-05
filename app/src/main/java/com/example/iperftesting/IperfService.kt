@@ -33,7 +33,6 @@ import java.util.Locale
 
 class IperfService : Service() {
 
-
     private val notificationChannelId = "IperfServiceChannel"
     private val notificationId = 1234
     private lateinit var notificationManager: NotificationManager
@@ -85,13 +84,12 @@ class IperfService : Service() {
             .setContentIntent(pendingIntent)
             .build()
 
+
         startForeground(notificationId, notification)
         if(saveToFile == true){
             Log.d("saveToFileServiceTrue",saveToFile.toString())
             createLogFile()
         }
-
-
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -124,7 +122,6 @@ class IperfService : Service() {
                             actionListener?.durationOfServer()
                         }
                     }
-
 
                     Log.d("Output", line.toString())
                     response.append(line).append("\n")

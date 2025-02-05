@@ -2,20 +2,29 @@
     <string name="app_name">Perfgrine</string>
     <string name="unit1">Mbps</string>
     <string name="unit2">MBytes</string>
+    <string name="end">End</string>
+    <string name="start">Start</string>
+    <string name="website_s_ip">Website\'s IP</string>
 
     <style name="ItemText">
         <item name="android:textColor">@color/black</item>
     </style>
 
     <string-array name="bandwidth">
+        <item>1M</item>
+        <item>2M</item>
+        <item>5M</item>
+        <item>20M</item>
+        <item>40M</item>
         <item>100M</item>
         <item>200M</item>
-        <item>300M</item>
         <item>400M</item>
         <item>500M</item>
         <item>600M</item>
-        <item>700M</item>
         <item>800M</item>
+        <item>1GB</item>
+        <item>1.2GB</item>
+        <item>1.4GB</item>
         <item>Other</item>
     </string-array>
 

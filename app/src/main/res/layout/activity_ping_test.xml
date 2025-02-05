@@ -11,17 +11,62 @@
     android:paddingBottom="16dp"
     tools:context=".PingTest">
 
-
-    <ScrollView
-        android:id="@+id/scrollPingOutput"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/_250sdp"
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.055">
+        app:layout_constraintVertical_bias="0.047">
+
+
+        <TextView
+            android:id="@+id/textView"
+            style="@style/TEXT"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Average Latency"
+            android:textSize="@dimen/_16ssp"
+            app:layout_constraintBottom_toTopOf="@+id/pingLatencyText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5" />
+
+        <TextView
+            android:id="@+id/pingLatencyText"
+            style="@style/TEXT"
+            android:layout_width="361dp"
+            android:layout_height="77dp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:hint="0 ms"
+            android:textSize="@dimen/_40ssp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView"
+            app:layout_constraintVertical_bias="0.5" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ScrollView
+        android:id="@+id/scrollPingOutput"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_250sdp"
+        android:layout_marginTop="@dimen/_70sdp"
+        app:layout_constraintBottom_toTopOf="@+id/constraintLayout10"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.5">
 
         <TextView
             android:id="@+id/resultTextView"
@@ -63,6 +108,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout10"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -17,22 +17,26 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.ScrollView
-
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
-class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
+import java.io.InputStreamReader
 
+class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
 
     private lateinit var resultTextView: TextView
     private lateinit var output: TextView
@@ -47,7 +51,6 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
     private lateinit var unitsThroughput: TextView
     private val FOREGROUND_PERMISSION_REQUEST = 124
 
-
     private var isRunning = false
     private var elapsedTimeSeconds: Int = 0
     private val timerHandler = Handler(Looper.getMainLooper())
@@ -58,6 +61,7 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
 
     private lateinit var allBitrateGraph: ArrayList<String>
     private lateinit var serviceIntent: Intent
+    private lateinit var webSocketClient: WebSocketClient
 
     private var time: Int = 0
     private var saveToFile: Boolean = false
@@ -68,10 +72,19 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
     private val MY_PERMISSIONS_REQUEST_INTERNET = 123
     private var totalTime: Int = 0
     private var streams: String ?= ""
-    private lateinit var requestPermissionsLauncher: ActivityResultLauncher<Array<String>>
-    private lateinit var myCelInfo: MyCellInfo
+
+    private lateinit var myCellInfo: MyCellInfo
+
     private var storageManager: StorageManager ?= null
     private var fileOutput: File ?= null
+    private val handler = Handler(Looper.getMainLooper())
+
+    private val uiUpdateRunnable = object : Runnable {
+        override fun run() {
+            updateUI()
+            handler.postDelayed(this, 500)
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,24 +115,33 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
 
         serviceIntent = Intent(this, IperfService::class.java)
 
+
         checkAndRequestInternetPermission()
         requestNotificationPermission()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            requestPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-                val granted = permissions[Manifest.permission.READ_PHONE_STATE] == true &&
-                        permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
-                if (granted) {
-                    myCelInfo.initialize(requestPermissionsLauncher)
-                } else {
-                    // Handle the case where permissions are not granted
-                }
-            }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+//            requestPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+//                val granted = permissions[Manifest.permission.READ_PHONE_STATE] == true &&
+//                        permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+//                if (granted) {
+//                    myCelInfo.initialize(requestPermissionsLauncher)
+//                } else {
+//                    // Handle the case where permissions are not granted
+//                }
+//            }
+//        }
+
+//        myCelInfo = MyCellInfo(this,rsrpTextViewSim1,rsrqTextViewSim1)
+//        myCelInfo.initialize(requestPermissionsLauncher)
+        backButton.setOnClickListener{
+            onBackPressed = true
+            startActivity(Intent(applicationContext, IperfInputs::class.java))
+            finish()
         }
 
-
-        myCelInfo = MyCellInfo(this,rsrpTextViewSim1,rsrqTextViewSim1)
-        myCelInfo.initialize(requestPermissionsLauncher)
+        myCellInfo = MyApp.myCellInfoInstance
+        handler.post(uiUpdateRunnable)
+        webSocketClient = MyApp.myWebSocketInstance
 
         resultTextView.text = ""
         output.text = ""
@@ -209,22 +231,6 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         Log.d("Perform iperf method","Entered the method")
         //"iperf3","-c",ipAddress,"-u","-t","12","-b","800M","R"
         isTimerRunning = false
-
-        val chosenSystem = intent.getStringExtra("systemChosen")
-        if(chosenSystem == "-s"){
-            duration.text = "Total:${formatDuration(0)}"
-
-        }else{
-            summaryButton.isEnabled = false
-            if(totalTime == 0){
-                time = 300
-                duration.text = "Total:${formatDuration(time)}"
-            }else{
-                time = totalTime
-                duration.text = "Total:${formatDuration(time)}"
-            }
-        }
-
         startIperfService()
         return true
     }
@@ -237,22 +243,37 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         val command = onGetCommand()
         Toast.makeText(applicationContext,command,Toast.LENGTH_SHORT).show()
         saveToFile = intent.getBooleanExtra("saveToFile",false)
-
         Log.d("saveToFile",saveToFile.toString())
 
         val chosenSystem = intent.getStringExtra("systemChosen")
+
+        if(chosenSystem == "-s"){
+            duration.text = "Total:${formatDuration(0)}"
+
+        }else{
+            summaryButton.isEnabled = false
+            if(totalTime == 0){
+                time = 10
+                duration.text = "Total:${formatDuration(time)}"
+            }else{
+                time = totalTime
+                duration.text = "Total:${formatDuration(time)}"
+            }
+        }
+
         serviceIntent.putExtra("command",command)
         serviceIntent.putExtra("chosenSystem",chosenSystem)
         serviceIntent.putExtra("path",applicationInfo.nativeLibraryDir + "/libiperf3.16.so")
         serviceIntent.putExtra("saveToFile",saveToFile)
-//        Toast.makeText(applicationContext,"Started Service",Toast.LENGTH_SHORT).show()
+        Toast.makeText(applicationContext,"Started Service",Toast.LENGTH_SHORT).show()
         startService(serviceIntent)
+
     }
 
     override fun toStopService(value: Boolean) {
 
         stopService(serviceIntent)
-//        Toast.makeText(applicationContext,"Stopped Service",Toast.LENGTH_SHORT).show()
+        Toast.makeText(applicationContext,"Stopped Service",Toast.LENGTH_SHORT).show()
     }
 
     override fun stopToRestart() {
@@ -265,7 +286,7 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
             scrollOutput.fullScroll(View.FOCUS_DOWN)
         }
 
-
+        Log.d("result",result.toString())
         displayingOutput(result)
         getTransferredData(result)
         getLostNoOfPackets(result)
@@ -336,7 +357,7 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
             isTimerRunning = true
             toStopService(true)
             Log.d("Ended","Process Terminated")
-//            Toast.makeText(applicationContext,"Stopped Testing",Toast.LENGTH_SHORT).show()
+            Toast.makeText(applicationContext,"Stopped Testing",Toast.LENGTH_SHORT).show()
             startActivity(Intent(applicationContext, IperfInputs::class.java))
             finish()
         }
@@ -347,6 +368,10 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         inputStream.close()
         reader.close()
         isTimerRunning = true
+    }
+
+    override fun getRsrp(): String {
+        return rsrpTextViewSim1.text.toString()
     }
 
     override fun durationOfClient() {
@@ -466,8 +491,23 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         }
         return bitrate
     }
-    override fun getRsrp(): String {
-        return rsrpTextViewSim1.text.toString()
+
+    private fun displayRSRP(){
+        rsrpTextViewSim1.text = "RSRP: "+myCellInfo.storeRsrp()
+    }
+    private fun displayRSRQ(){
+        rsrqTextViewSim1.text = "RSRQ: "+ myCellInfo.storeRsrq()
+    }
+
+    private fun sendThroughput(){
+        webSocketClient.getThroughput("${resultTextView.text} ${unitsThroughput.text}")
+    }
+    fun updateUI(){
+        handler.post{
+            displayRSRP()
+            displayRSRQ()
+            sendThroughput()
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
@@ -501,7 +541,6 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         else {
             // Permission is already granted
             startIperf()
-
         }
     }
     override fun onRequestPermissionsResult(
@@ -556,6 +595,7 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
         totalTime = (th*60*60) + (tm*60) + (ts)
         streams = sharedInputs.getString("streams","")
         val mode = sharedInputs.getString("mode","")
+        val bidirMode = sharedInputs.getString("bidirMode","")
 
         if(chosenSystem == "-s"){
             command = "-s"
@@ -568,11 +608,25 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
             Log.d("time",totalTime.toString())
             Log.d("No Streams",streams.toString())
             Log.d("mode",mode.toString())
+            Log.d("bidirMode",bidirMode.toString())
 
             command = "-c $ipAddress" + if (protocol == "-u") " -u" else ""
 
             if(protocol == "-u"){
-                bandwidth?.takeIf { it.isNotBlank() }?.let { command += " -b $it" }
+                when (bandwidth) {
+                    "1GB" -> {
+                        command += " -b 1000M"
+                    }
+                    "1.2GB" -> {
+                        command += " -b 1200M"
+                    }
+                    "1.4GB" -> {
+                        command += " -b 1400M"
+                    }
+                    else -> {
+                        bandwidth?.takeIf { it.isNotBlank() }?.let { command += " -b $it" }
+                    }
+                }
             }
 
             portNo?.takeIf { it.isNotBlank() }?.let { command += " -p $it" }
@@ -582,6 +636,8 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
             streams?.takeIf { it.isNotBlank() && it.toInt() > 1}?.let { command += " -P $it" }
 
             if(mode == "R") command += " -R"
+
+            if(bidirMode == "--bidir") command += " --bidir"
 
             if(command == "-c $ipAddress -b 100M" || command == "-c $ipAddress"){
 
@@ -599,7 +655,7 @@ class MainActivity : AppCompatActivity(),  IperfActionListener, IperfCallback{
 
     override fun onDestroy() {
         super.onDestroy()
-        myCelInfo.stopUpdates()
+//        myCelInfo.stopUpdates()
+        handler.removeCallbacks(uiUpdateRunnable)
     }
-
 }

@@ -21,6 +21,5 @@ interface IperfActionListener : Serializable{
     fun stopToRestart()
     fun toStopService(value: Boolean)
     fun stopIperfTest(process: Process,inputStream: InputStream,reader: BufferedReader)
-
     fun getRsrp(): String
 }

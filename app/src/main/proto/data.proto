@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+// Optional package to organize generated classes
+package com.example.protobuf;
+
+message Data {
+    string throughput = 1;  // Field number 1
+    string rsrp = 2;        // Field number 2
+    string rsrq = 3;        // Field number 3
+    string latitude = 4;   // Field number 4
+    string longitude = 5;  // Field number 5
+    string ip = 6;         // Field number 6
+    int32 arfcn = 7;       // Field number 7
+    int32 pci = 8;         // Field number 8
+}

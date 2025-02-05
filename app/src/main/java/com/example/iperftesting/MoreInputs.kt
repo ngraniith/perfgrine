@@ -3,6 +3,7 @@ package com.example.iperftesting
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 
@@ -24,6 +25,7 @@ class MoreInputs : BottomSheetDialogFragment() {
 
     private var radioButtonSelectedIndex: Int = -1
     private var reverseCheckBox: Boolean = false
+    private var bidirectionalCheckBox: Boolean = false
     private var spinnerSelectedItemPosition: Int = 0
     private var streamSelectedItemPosition: Int = 0
     private var customBandwidth: String = ""
@@ -88,6 +90,19 @@ class MoreInputs : BottomSheetDialogFragment() {
             dismiss()
         }
 
+        binding.reverseModeCheck.setOnCheckedChangeListener { _, isChecked ->
+            // Re-enable bidirectional checkbox when unchecked// Disable bidirectional checkbox and set values
+            reverseCheckBox = isChecked
+            binding.bidirectionalMode.isEnabled = !isChecked
+
+        }
+
+        binding.bidirectionalMode.setOnCheckedChangeListener { _, isChecked ->
+            // Re-enable reverse checkbox when unchecked// Disable reverse checkbox and set values
+            bidirectionalCheckBox = isChecked
+            binding.reverseModeCheck.isEnabled = !isChecked
+        }
+
         binding.protHelp.setOnClickListener{
             showHelpDialog("Protocol")
         }
@@ -114,6 +129,13 @@ class MoreInputs : BottomSheetDialogFragment() {
             dismiss()
         }
 
+//        binding.sendToWeb.setOnClickListener {
+//
+//            val intent = Intent(context,SendingToWebsite::class.java)
+//            startActivity(intent)
+//            dismiss()
+//        }
+
     }
 
     private fun saveInputs() {
@@ -136,12 +158,26 @@ class MoreInputs : BottomSheetDialogFragment() {
                 }
             }
         }
-        reverseCheckBox = binding.reverseModeCheck.isChecked
-        editor.putBoolean("reverseModeIsSelected",reverseCheckBox)
-        if(binding.reverseModeCheck.isChecked){
-            editor.putString("mode","R")
-        }else{
-            editor.putString("mode","")
+
+        if (reverseCheckBox) {
+            editor.putBoolean("reverseModeIsSelected", true)
+            editor.putBoolean("bidirectionalModeIsSelected", false)
+            editor.putString("mode", "R")
+            editor.putString("bidirMode", "")
+        } else {
+            editor.putBoolean("reverseModeIsSelected", false)
+            editor.putString("mode", "")
+        }
+        editor.apply()
+
+        if (bidirectionalCheckBox) {
+            editor.putBoolean("bidirectionalModeIsSelected", true)
+            editor.putBoolean("reverseModeIsSelected", false)
+            editor.putString("mode", "")
+            editor.putString("bidirMode", "--bidir")
+        } else {
+            editor.putBoolean("bidirectionalModeIsSelected", false)
+            editor.putString("bidirMode", "")
         }
 
         spinnerSelectedItemPosition = binding.bandSpinner.selectedItemPosition
@@ -237,15 +273,16 @@ class MoreInputs : BottomSheetDialogFragment() {
 
     private fun disableOptions(){
 
-            clearInputs()
-            binding.tcpButton.isEnabled = false
-            binding.udpButton.isEnabled = false
-            binding.bandSpinner.isEnabled = false
-            binding.numHrs.isEnabled = false
-            binding.numMins.isEnabled = false
-            binding.numSecs.isEnabled = false
-            binding.parallelStreams.isEnabled = false
-            binding.reverseModeCheck.isEnabled = false
+        clearInputs()
+        binding.tcpButton.isEnabled = false
+        binding.udpButton.isEnabled = false
+        binding.bandSpinner.isEnabled = false
+        binding.numHrs.isEnabled = false
+        binding.numMins.isEnabled = false
+        binding.numSecs.isEnabled = false
+        binding.parallelStreams.isEnabled = false
+        binding.reverseModeCheck.isEnabled = false
+        binding.bidirectionalMode.isEnabled = false
 
     }
     private fun clearInputs(){
@@ -281,11 +318,16 @@ class MoreInputs : BottomSheetDialogFragment() {
 
 
         reverseCheckBox = sharedPreferences.getBoolean("reverseModeIsSelected",false)
+        bidirectionalCheckBox = sharedPreferences.getBoolean("bidirectionalModeIsSelected",false)
 
         if(reverseCheckBox){
             binding.reverseModeCheck.isChecked = true
         }
+        if(bidirectionalCheckBox){
+            binding.bidirectionalMode.isChecked = true
+        }
         Log.d("reverse mode",sharedPreferences.getString("mode","").toString())
+        Log.d("bidir mode",sharedPreferences.getString("bidirMode","").toString())
 
         spinnerSelectedItemPosition = sharedPreferences.getInt("selectedBandwidth",0)
         Log.d("bandwidthItems",bandwidthItems.toString())

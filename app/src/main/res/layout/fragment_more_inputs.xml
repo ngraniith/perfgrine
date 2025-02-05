@@ -403,6 +403,32 @@
                 android:orientation="horizontal">
 
                 <CheckBox
+                    android:id="@+id/bidirectionalMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="bidirectional"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/_10ssp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/reverseModeCheck"
+                    app:layout_constraintHorizontal_bias="0.434"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.0" />
+
+                <ImageView
+                    android:id="@+id/bidirectionalHelp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:src="@drawable/question_mark"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/bidirectionalMode"
+                    app:layout_constraintHorizontal_bias="0.615"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <CheckBox
                     android:id="@+id/reverseModeCheck"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -411,10 +437,10 @@
                     android:textSize="@dimen/_10ssp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintHorizontal_bias="0.811"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.5" />
+                    app:layout_constraintVertical_bias="0.0" />
 
                 <ImageView
                     android:id="@+id/reverseHelp"
@@ -424,7 +450,7 @@
                     android:src="@drawable/question_mark"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.105"
+                    app:layout_constraintHorizontal_bias="0.448"
                     app:layout_constraintStart_toEndOf="@+id/reverseModeCheck"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -482,6 +508,27 @@
                     app:layout_constraintVertical_bias="0.0" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
+
+<!--            <androidx.constraintlayout.widget.ConstraintLayout-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="@dimen/_13sdp"-->
+<!--                android:orientation="horizontal">-->
+
+<!--                <Button-->
+<!--                    android:id="@+id/sendToWeb"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="Send to website"-->
+<!--                    style="@style/TEXT"-->
+<!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                    app:layout_constraintEnd_toEndOf="parent"-->
+<!--                    app:layout_constraintHorizontal_bias="0.5"-->
+<!--                    app:layout_constraintStart_toStartOf="parent"-->
+<!--                    app:layout_constraintTop_toTopOf="parent"-->
+<!--                    app:layout_constraintVertical_bias="0.5" />-->
+
+<!--            </androidx.constraintlayout.widget.ConstraintLayout>-->
 
         </LinearLayout>
 

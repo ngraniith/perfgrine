@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">192.168.1.53</domain>
+    </domain-config>
+</network-security-config>
+
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<network-security-config>-->
+<!--    &lt;!&ndash; Allow cleartext traffic (HTTP, etc.) for all networks &ndash;&gt;-->
+<!--    <base-config cleartextTrafficPermitted="true" />-->
+<!--</network-security-config>-->

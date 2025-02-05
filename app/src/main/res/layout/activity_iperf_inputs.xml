@@ -72,6 +72,42 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_20sdp">
+
+                    <TextView
+                        android:id="@+id/rsrpValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="RSRP:"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/_12ssp"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.14"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_bias="0.0" />
+
+                    <TextView
+                        android:id="@+id/rsrqValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="RSRQ:"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/_12ssp"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.794"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_bias="0.0" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/_15sdp">
 
                     <RadioGroup
@@ -246,6 +282,7 @@
                             style="@style/TEXT"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:checked="true"
                             android:layout_weight="0.5"
                             android:layout_marginStart="@dimen/_50sdp"
                             android:layout_gravity="center"

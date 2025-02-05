@@ -6,6 +6,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.telephony.CellIdentityLte
+import android.telephony.CellIdentityNr
 import android.telephony.CellInfo
 import android.telephony.CellInfoLte
 import android.telephony.CellInfoNr
@@ -15,7 +17,6 @@ import android.telephony.SubscriptionManager
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
 import android.util.Log
-import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
@@ -25,9 +26,11 @@ import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 
-class MyCellInfo(private val context: Context,
-                 private val rsrpTextViewSim1: TextView,
-                 private val rsrqTextViewSim1: TextView) {
+class MyCellInfo(
+    private val context: Context
+) {
+
+    data class Result(val pci: Int, val arfcn: Int, val ci: Long?, val rsrp: String, val rsrq: String)
 
     private val telephonyManager: TelephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
     private val subscriptionManager: SubscriptionManager = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
@@ -38,6 +41,12 @@ class MyCellInfo(private val context: Context,
     private val handler = Handler(Looper.getMainLooper())
     private var latestRsrpSim1: Int? = null
     private var latestRsrqSim1: Int? = null
+    private var latestPci:Int = 0
+    private var latestCi:Long? = null
+    private var latestArfcn: Int = 0
+
+    private var sendRsrp: String = ""
+    private var sendRsrq: String = ""
 
     private val userChoice = SimChoice.getSimChoice()
 
@@ -55,7 +64,6 @@ class MyCellInfo(private val context: Context,
             handler.postDelayed(this, 500)
         }
     }
-
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     fun initialize(requestPermissionsLauncher: ActivityResultLauncher<Array<String>>) {
@@ -84,6 +92,7 @@ class MyCellInfo(private val context: Context,
 
                     mySubList.getOrNull(0)?.subscriptionId?.let {
                         mySimTelephonyManager = telephonyManager.createForSubscriptionId(it)
+                        
                         Log.d("createdSub","Success for SIM1")
                     }
                 }
@@ -111,13 +120,13 @@ class MyCellInfo(private val context: Context,
         return allSubscriptionInfoList
     }
 
-
     @RequiresApi(Build.VERSION_CODES.S)
     private fun registerTelephonyCallback() {
         val telephonyCallback = object : TelephonyCallback(), TelephonyCallback.CellInfoListener {
             @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
             override fun onCellInfoChanged(cellInfo: List<CellInfo>) {
-                Log.d("cellinfo", "entered cellinfoChanged method")
+                
+                Log.d("cellinfo", "entered cellinfo Changed method")
                 Log.d("mycellinfo", cellInfo.toString())
                 handler.post {
                     processCellInfo(cellInfo)
@@ -135,7 +144,6 @@ class MyCellInfo(private val context: Context,
         handler.post(runnable)
         handler.post(uiUpdateRunnable)
     }
-
 
     @RequiresApi(Build.VERSION_CODES.S)
     private fun requestCellInfoUpdate() {
@@ -159,19 +167,46 @@ class MyCellInfo(private val context: Context,
 
 
 
-    @RequiresApi(Build.VERSION_CODES.Q)
+    @RequiresApi(Build.VERSION_CODES.R)
     private fun processCellInfo(cellInfo: List<CellInfo>) {
 
         Log.d("cellInfoDetails",cellInfo.toString())
         CoroutineScope(Dispatchers.IO).launch {
             for (info in cellInfo) {
 
+                when (val cellIdentity = info.cellIdentity) {
+                    is CellIdentityLte -> {
+                        // LTE (4G) specific information
+                        latestPci = cellIdentity.pci
+                        latestArfcn = cellIdentity.earfcn
+                        latestCi = cellIdentity.ci.toLong()
+
+                        // Process and use these values as needed
+                        println("LTE Cell Info:")
+                        println("PCI: $latestPci")
+                        println("ARFCN: $latestArfcn")
+                        println("NCI: $latestCi")
+                    }
+                    is CellIdentityNr -> {
+                        // NR (5G) specific information
+                        latestArfcn = cellIdentity.nrarfcn
+                        latestPci= cellIdentity.pci
+                        latestCi = cellIdentity.nci
+
+                        // Process and use these values as needed
+                        println("NR Cell Info:")
+                        println("NRARFCN: $latestArfcn")
+                        println("PCI: $latestPci")
+                        println("NCI: $latestCi")
+                    }
+                }
+
                 if (info is CellInfoLte) {
                     val cellSignalStrengthLte = info.cellSignalStrength
                     latestRsrpSim1 = cellSignalStrengthLte.rsrp
                     latestRsrqSim1 = cellSignalStrengthLte.rsrq
 
-                    Log.d("CellInfoLte",info.toString())
+                    Log.d("CellInfoLtegf",info.toString())
                     Log.d("Signal", "RSRP: $latestRsrpSim1, RSRQ: $latestRsrqSim1")
 
                 }
@@ -185,28 +220,45 @@ class MyCellInfo(private val context: Context,
                     Log.d("CellInfoNr",info.toString())
                 }
             }
+
         }
 
+    }
+
+//    fun stopUpdates(){
+//        handler.removeCallbacks(runnable)
+//        handler.removeCallbacks(uiUpdateRunnable)
+//    }
+
+    fun storeRsrp() : String{
+        return sendRsrp
+    }
+    fun storeRsrq() : String{
+        return sendRsrq
+    }
+
+    fun sendNetworkInfo() : Result{
+        println("in send network info")
+        println("NRARFCN: $latestArfcn")
+        println("PCI: $latestPci")
+        println("NCI: $latestCi")
+        return Result(latestPci,latestArfcn,latestCi,sendRsrp,sendRsrq)
     }
 
     private fun updateUI() {
         handler.post{
             latestRsrpSim1?.let {
                 if(it != 2147483647){
-                    rsrpTextViewSim1.text = "RSRP: $it"
+                    sendRsrp = it.toString()
+                    Log.d("sendRSRP",sendRsrp)
                 }
-
             }
             latestRsrqSim1?.let {
                 if(it != 2147483647){
-                    rsrqTextViewSim1.text = "RSRQ: $it"
+                    sendRsrq = it.toString()
+                    Log.d("sendRSRQ",sendRsrq)
                 }
-
             }
         }
-    }
-    fun stopUpdates(){
-        handler.removeCallbacks(runnable)
-        handler.removeCallbacks(uiUpdateRunnable)
     }
 }
